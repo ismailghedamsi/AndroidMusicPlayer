@@ -23,6 +23,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -41,11 +42,13 @@ import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource;
@@ -87,12 +90,13 @@ public class MainActivity extends AppCompatActivity {
 
     private SimpleExoPlayer  player ;
     List<Song> songs;
-    private int positionClick;
+    private int oldPosition;
     MediaSource audioSource;
     PlayerView playerView ;
     DefaultDataSourceFactory dataSourceFactory;
     ListView listView;
     PlayerNotificationManager playerNotificationManager;
+    ConcatenatingMediaSource concatenatingMediaSource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         songs = getMusicLibrary();
-        Collections.sort(songs, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
+        //Collections.sort(songs, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 225);
 
         AppDatabase db = Room.databaseBuilder(getApplicationContext(),AppDatabase.class, "database-name").build();
@@ -149,6 +153,33 @@ public class MainActivity extends AppCompatActivity {
                                                                   }
         );
 
+        player.addListener(new ExoPlayer.EventListener(){
+            @Override
+            public void onLoadingChanged(boolean isLoading) {
+            }
+
+            @Override
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+                if(playbackState == ExoPlayer.STATE_ENDED){
+                    player.prepare(   new ProgressiveMediaSource.Factory(dataSourceFactory)
+                            .createMediaSource(Uri.parse(songs.get(oldPosition+1).getPath())));
+                    player.setPlayWhenReady(true);
+                }
+            }
+
+
+            @Override
+            public void onPlayerError(ExoPlaybackException error) {
+            }
+
+            @Override
+            public void onPositionDiscontinuity(int i) {
+                int latestWindowIndex = player.getCurrentWindowIndex();
+                    // item selected in playlist has changed, handle here
+                    oldPosition = latestWindowIndex;
+            }
+        });
+
         listView =  findViewById(R.id.songsList);
         CustomAdapter adapter=
                 new CustomAdapter(this, R.layout.song_item, songs);
@@ -166,6 +197,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+
 
     private void updateNumberOfPlay(AppDatabase db) {
         AsyncTask.execute(new Runnable() {
@@ -197,11 +230,11 @@ public class MainActivity extends AppCompatActivity {
                         .build();
                 Prefs.putInt("lastPlayedSong",position);
                 view.setBackgroundColor(Color.BLUE);
+                oldPosition = position;
                 adapter.selectItem(position);
-                      player.prepare(   new ProgressiveMediaSource.Factory(dataSourceFactory)
+                     player.prepare(   new ProgressiveMediaSource.Factory(dataSourceFactory)
                 .createMediaSource(Uri.parse(songs.get(position).getPath())));
-        player.setPlayWhenReady(true);
-
+                player.setPlayWhenReady(true);
             }
         });
     }
