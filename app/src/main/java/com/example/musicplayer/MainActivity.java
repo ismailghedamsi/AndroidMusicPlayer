@@ -1,5 +1,6 @@
 package com.example.musicplayer;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -9,19 +10,25 @@ import androidx.room.RoomDatabase;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -37,6 +44,7 @@ import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
@@ -48,6 +56,7 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.PlayerNotificationManager;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
@@ -57,9 +66,12 @@ import com.google.android.exoplayer2.util.Util;
 import com.pixplicity.easyprefs.library.Prefs;
 
 
+
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -80,11 +92,15 @@ public class MainActivity extends AppCompatActivity {
     PlayerView playerView ;
     DefaultDataSourceFactory dataSourceFactory;
     ListView listView;
+    PlayerNotificationManager playerNotificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        songs = getMusicLibrary();
+        Collections.sort(songs, (o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 225);
 
         AppDatabase db = Room.databaseBuilder(getApplicationContext(),AppDatabase.class, "database-name").build();
@@ -93,9 +109,49 @@ public class MainActivity extends AppCompatActivity {
         player = ExoPlayerFactory.newSimpleInstance(this,new DefaultTrackSelector());
      dataSourceFactory = new DefaultDataSourceFactory(this,Util.getUserAgent(this,"audio demo"));
 
-        listView = (ListView) findViewById(R.id.songsList);
+      playerNotificationManager = PlayerNotificationManager.createWithNotificationChannel(getApplicationContext(), "channel1", R.string.playback_channel_name, 1,
+              new PlayerNotificationManager.MediaDescriptionAdapter() {
+                  @Override
+                  public String getCurrentContentTitle(Player player) {
+                      return songs.get(player.getCurrentWindowIndex()).getTitle();
+                  }
+
+                  @Nullable
+                  @Override
+                  public PendingIntent createCurrentContentIntent(Player player) {
+                      Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+                      return PendingIntent.getActivity(getApplicationContext(),0,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+                  }
+
+                  @Nullable
+                  @Override
+                  public String getCurrentContentText(Player player) {
+                      return songs.get(player.getCurrentWindowIndex()).getArtistName();
+                  }
+
+                  @Nullable
+                  @Override
+                  public Bitmap getCurrentLargeIcon(Player player, PlayerNotificationManager.BitmapCallback callback) {
+                      return null;
+                  }
+              }
+              );
+        playerNotificationManager.setNotificationListener(new PlayerNotificationManager.NotificationListener() {
+                                                                      @Override
+                                                                      public void onNotificationStarted ( int notificationId, Notification notification){
+                                                                          Intent intent = new Intent();
+                                                                          Util.startForegroundService(getApplicationContext(),intent);
+                                                                      }
+                                                                      @Override
+                                                                      public void onNotificationCancelled ( int notificationId){
+                                                                          player.release();
+                                                                      }
+                                                                  }
+        );
+
+        listView =  findViewById(R.id.songsList);
         CustomAdapter adapter=
-                new CustomAdapter(this, R.layout.song_item, getMusicLibrary());
+                new CustomAdapter(this, R.layout.song_item, songs);
         listView.setAdapter(adapter);
      setSongsListView(adapter);
         new Prefs.Builder()
@@ -143,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                 view.setBackgroundColor(Color.BLUE);
                 adapter.selectItem(position);
                       player.prepare(   new ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(Uri.parse(getMusicLibrary().get(position).getPath())));
+                .createMediaSource(Uri.parse(songs.get(position).getPath())));
         player.setPlayWhenReady(true);
 
             }
@@ -203,4 +259,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return songs;
     }
+
+
 }
