@@ -1,23 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="5dp"
     tools:context=".MainActivity">
+
+    <AutoCompleteTextView
+        android:id="@+id/autoCompleteTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="16dp"
+        android:text="AutoCompleteTextView" />
 
     <ListView
         android:id="@+id/songsList"
-        android:choiceMode="singleChoice"
-        android:layout_width="345dp"
-        android:layout_height="520dp"
-        android:layout_marginStart="1dp"
-        android:layout_marginTop="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="1dp" />
+        android:layout_width="380dp"
+        android:layout_height="632dp"
+        android:layout_below="@id/autoCompleteTextView"
+        android:layout_weight="1"
+        android:choiceMode="singleChoice" />
 
     <com.google.android.exoplayer2.ui.PlayerView
         android:id="@+id/video_view"
-        android:layout_width="match_parent"
-        android:layout_height="298dp" />
-</LinearLayout>
+        android:layout_width="239dp"
+        android:layout_height="29dp"
+        android:visibility="gone"
+
+ />
+
+
+
+
+</RelativeLayout>
