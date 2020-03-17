@@ -2,16 +2,21 @@ package com.example.musicplayer;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
+import android.widget.Filter;
+import android.widget.Filterable;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CustomAdapter extends ArrayAdapter<Song> implements AdapterView.OnItemClickListener {
@@ -49,6 +54,8 @@ public class CustomAdapter extends ArrayAdapter<Song> implements AdapterView.OnI
             result=convertView;
 
             convertView.setTag(viewHolder);
+
+
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
             result=convertView;
@@ -88,4 +95,18 @@ public class CustomAdapter extends ArrayAdapter<Song> implements AdapterView.OnI
         TextView songTitle;
         TextView duration;
     }
+
+    public int getCount() {
+        return songs.size();
+    }
+
+    public Song getItem(int position) {
+        return songs.get(position);
+    }
+
+    public long getItemId(int position) {
+        return position;
+    }
+
+
 }

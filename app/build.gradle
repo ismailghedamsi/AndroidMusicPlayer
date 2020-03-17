@@ -55,6 +55,7 @@ dependencies {
     implementation 'android.arch.persistence.room:rxjava2:1.0.0-alpha1'
     implementation 'com.zsoltsafrany:needle:1.0.0'
     implementation 'com.pixplicity.easyprefs:library:1.9.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
 
 
 

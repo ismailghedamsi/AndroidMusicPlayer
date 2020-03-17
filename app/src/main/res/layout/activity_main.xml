@@ -13,8 +13,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
+        android:hint="songName"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/searchButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="150dp"
         android:layout_marginTop="16dp"
-        android:text="AutoCompleteTextView" />
+        android:text="Search" />
+
+
 
     <ListView
         android:id="@+id/songsList"
@@ -22,6 +32,7 @@
         android:layout_height="632dp"
         android:layout_below="@id/autoCompleteTextView"
         android:layout_weight="1"
+        android:longClickable="true"
         android:choiceMode="singleChoice" />
 
     <com.google.android.exoplayer2.ui.PlayerView

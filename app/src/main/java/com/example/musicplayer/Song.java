@@ -2,6 +2,7 @@ package com.example.musicplayer;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -17,6 +18,12 @@ public class Song   {
     private String duration;
     private int numberOfPLay;
 
+
+    public boolean equals(@Nullable Object song) {
+        Song thisSong = (Song) this;
+        Song otherSong = (Song) song;
+        return  thisSong.getTitle().equals(otherSong.getTitle()) && thisSong.getArtistName().equals(otherSong.getArtistName());
+    }
 
     public Song(String albumId, String artistName, String title, String data, String displayName, String duration) {
         this.songId = albumId;
