@@ -8,6 +8,7 @@ buildscript {
         google()
         jcenter()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'http://yanzm.github.io/MaterialTabHost/repository' }
 
     }
 

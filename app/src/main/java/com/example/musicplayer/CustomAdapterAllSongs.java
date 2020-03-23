@@ -2,29 +2,23 @@ package com.example.musicplayer;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class CustomAdapter extends ArrayAdapter<Song> implements AdapterView.OnItemClickListener {
+public class CustomAdapterAllSongs extends ArrayAdapter<Song> implements AdapterView.OnItemClickListener {
     List<Song> songs ;
     private int mSelectedItem = 0;
     private int TAG_UNSELECTED = 0;
     private int TAG_SELECTED = 1;
-    public CustomAdapter(@NonNull Context context, int resource, List<Song> songs) {
+    public CustomAdapterAllSongs(@NonNull Context context, int resource, List<Song> songs) {
         super(context, resource,songs);
         this.songs = songs;
     }
@@ -36,10 +30,8 @@ public class CustomAdapter extends ArrayAdapter<Song> implements AdapterView.OnI
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        // Get the data item for this position
         Song dataModel = getItem(position);
-        // Check if an existing view is being reused, otherwise inflate the view
-        ViewHolder viewHolder; // view lookup cache stored in tag
+        ViewHolder viewHolder;
 
         final View result;
 

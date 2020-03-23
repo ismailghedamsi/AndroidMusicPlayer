@@ -7,6 +7,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -60,7 +61,7 @@ import java.util.stream.Collectors;
 public class MainActivity extends AppCompatActivity {
 
     private SimpleExoPlayer  player ;
-    List<Song> songs;
+    public static List<Song> songs;
     private int oldPosition;
     MediaSource audioSource;
     PlayerView playerView ;
@@ -70,14 +71,19 @@ public class MainActivity extends AppCompatActivity {
     PlayerNotificationManager playerNotificationManager;
     ConcatenatingMediaSource concatenatingMediaSource;
     Button searchButton;
-    CustomAdapter adapter;
+    CustomAdapterAllSongs adapter;
+    public static Context contextOfApplication;
+    public static Context getContextOfApplication()
+    {
+        return contextOfApplication;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
+        contextOfApplication = getApplicationContext();
         requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 225);
 
         if(ContextCompat.checkSelfPermission(this,
@@ -99,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             listView.setLongClickable(true);
             listView.setClickable(true);
             adapter=
-                    new CustomAdapter(this, R.layout.song_item, songs);
+                    new CustomAdapterAllSongs(this, R.layout.song_item, songs);
             listView.setAdapter(adapter);
             setSongsListView(adapter);
             selectLastPlayerSong(adapter);
@@ -109,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
                     // When user changed the Text
-                    ((CustomAdapter)MainActivity.this.listView.getAdapter()).getFilter().filter(cs);
+                    ((CustomAdapterAllSongs)MainActivity.this.listView.getAdapter()).getFilter().filter(cs);
                 }
 
                 @Override
@@ -137,17 +143,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this,"Permission not granted",Toast.LENGTH_LONG).show();
         }
 
-
-
-
-
-
-
-        //buildAlertDialog("151");
-
     }
 
-    private void selectLastPlayerSong(CustomAdapter adapter) {
+    private void selectLastPlayerSong(CustomAdapterAllSongs adapter) {
         new Prefs.Builder()
                 .setContext(getApplicationContext())
                 .setMode(ContextWrapper.MODE_PRIVATE)
@@ -249,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setSongsListView(CustomAdapter adapter) {
+    private void setSongsListView(CustomAdapterAllSongs adapter) {
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -270,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(getApplicationContext(),"clicked",Toast.LENGTH_LONG).show();
                 PopupMenu popup = new PopupMenu(getApplicationContext(), view);
+
                 popup.getMenuInflater().inflate(R.menu.main_menu,
                         popup.getMenu());
                 popup.show();
@@ -346,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
         return songs;
     }
 
-    public void buildAlertDialog(CustomAdapter adapter,String searchedTitle){
+    public void buildAlertDialog(CustomAdapterAllSongs adapter, String searchedTitle){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         Map<Integer,String> foundSongs = new HashMap<>();
         builder.setTitle("Choose an song");
